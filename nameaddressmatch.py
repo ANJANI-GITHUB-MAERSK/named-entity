@@ -15,7 +15,8 @@ def preprocess_text(text: str) -> str:
 def jaro_winkler_similarity(s1: str, s2: str) -> float:
     try:
         s1, s2 = preprocess_text(s1), preprocess_text(s2)
-        return jellyfish.jaro_winkler(s1, s2)
+        return jellyfish.jaro_winkler_similarity(str1, str2)
+
     except Exception as e:
         st.error(f"Error calculating similarity: {e}")
         return 0.0
