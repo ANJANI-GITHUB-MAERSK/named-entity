@@ -46,8 +46,20 @@ def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
             print("DataFrame must contain 'name' column")
             return pd.DataFrame()
 
-        # Calculate Jaro-Winkler similarity for each name in the 'name' column
-        df['name_similarity'] = df['name'].apply(lambda x: jaro_winkler_similarity(x, user_name))
+        # Initialize an empty list to store similarity scores
+        similarity_scores = []
+
+        # Iterate through the 'name' column and calculate similarity for each row
+        for name in df['name']:
+            score = jaro_winkler_similarity(name, user_name)
+            st.write('name      :',name)
+            st.write('user_name :',user_name)
+            st.write('score     :',score)
+            similarity_scores.append(score)
+
+        # Add the similarity scores to the DataFrame as a new column
+        df['name_similarity'] = similarity_scores
+
         st.write('printing name_similarity')
         st.write(df['name_similarity'])
 
