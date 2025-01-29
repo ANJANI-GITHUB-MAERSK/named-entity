@@ -73,13 +73,25 @@ def append_to_registered_users(name: str, apmid: str):
 
     create_download_link(file_path)
 
-# Function to create a download link
 def create_download_link(file_path):
-    with open(file_path, 'rb') as f:
-        data = f.read()
-    b64 = base64.b64encode(data).decode()  # Convert to base64
-    href = f'<a href="data:file/csv;base64,{b64}" download="{file_path}">Download {file_path}</a>'
-    st.markdown(href, unsafe_allow_html=True)
+    try:
+        # Open the file and read its content
+        with open(file_path, 'rb') as f:
+            data = f.read()
+        
+        # Check if data is empty or None
+        if not data:
+            st.error("The file is empty or could not be read properly.")
+            return
+        
+        # Encode the data to base64
+        b64 = base64.b64encode(data).decode()  # Convert to base64
+        href = f'<a href="data:file/csv;base64,{b64}" download="{file_path}">Download {file_path}</a>'
+        st.markdown(href, unsafe_allow_html=True)
+        
+    except Exception as e:
+        st.error(f"Error creating download link: {e}")
+
 
 # Streamlit app
 def main():
