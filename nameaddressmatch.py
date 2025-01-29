@@ -1,115 +1,67 @@
-import re  # Ensure 're' is imported for regular expression operations
-import base64  # Ensure 'base64' is imported for encoding
-import pandas as pd
 import streamlit as st
-from pyjarowinkler import distance  # or jellyfish if you're using that library
+import pandas as pd
+from PIL import Image
+import re
+import os
+import base64
+import jellyfish
 
-
-
-# Function to preprocess text by making it lowercase and removing special characters
+# Function to preprocess text
 def preprocess_text(text: str) -> str:
     text = text.lower()
-    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-    return text
+    return re.sub(r'[^a-zA-Z0-9\s]', '', text)
 
 # Function to calculate Jaro-Winkler similarity
 def jaro_winkler_similarity(s1: str, s2: str) -> float:
     try:
-        s1 = preprocess_text(s1)
-        s2 = preprocess_text(s2)
-        return distance.get_jaro_distance(s1, s2, winkler=True)
+        s1, s2 = preprocess_text(s1), preprocess_text(s2)
+        return jellyfish.jaro_winkler(s1, s2)
     except Exception as e:
         st.error(f"Error calculating similarity: {e}")
         return 0.0
 
-# Function to match name with the dataframe
+# Function to match name against the dataset
 def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
-    try:
-        # Check if 'name' column exists in the DataFrame
-        if 'name' not in df.columns:
-            st.error("DataFrame must contain 'name' column")
-            return pd.DataFrame()
-
-        # Initialize an empty list to store similarity scores
-        similarity_scores = []
-
-        # Iterate through the 'name' column and calculate similarity for each row
-        for name in df['name']:
-            score = jaro_winkler_similarity(name, user_name)
-            similarity_scores.append(score)
-
-        # Add the similarity scores to the DataFrame as a new column
-        df['name_similarity'] = similarity_scores
-
-        # Filter records with a similarity score greater than 75%
-        filtered_df = df[df['name_similarity'] > 0.75]
-
-        # Return relevant columns
-        return filtered_df[['name', 'name_similarity']]
-
-    except Exception as e:
-        st.error(f"Error in matching: {e}")
+    if 'name' not in df.columns:
+        st.error("DataFrame must contain a 'name' column")
         return pd.DataFrame()
+    
+    df['name_similarity'] = df['name'].apply(lambda name: jaro_winkler_similarity(name, user_name))
+    filtered_df = df[df['name_similarity'] > 0.75]
+    return filtered_df[['name', 'name_similarity']]
 
 # Function to check if the user is already registered
 def is_user_registered(df: pd.DataFrame, name: str, apmid: str) -> bool:
     if 'name' not in df.columns or 'apmid' not in df.columns:
         return False
-
-    df['name'] = df['name'].str.lower()
-    df['apmid'] = df['apmid'].astype(str).str.lower()
     
-    name = name.lower()
-    apmid = apmid.lower()
-    
-    return not df[(df['name'] == name) & (df['apmid'] == apmid)].empty
+    name, apmid = name.lower(), apmid.lower()
+    return not df[(df['name'].str.lower() == name) & (df['apmid'].astype(str).str.lower() == apmid)].empty
 
 # Function to append new user data to registered_users.csv
 def append_to_registered_users(name: str, apmid: str):
-    new_row = pd.DataFrame({"name": [name], "apmid": [apmid]})
     file_path = "registered_users.csv"
+    new_row = pd.DataFrame({"name": [name], "apmid": [apmid]})
     
     if os.path.isfile(file_path):
         new_row.to_csv(file_path, mode='a', header=False, index=False)
     else:
         new_row.to_csv(file_path, mode='w', header=True, index=False)
 
-    create_download_link(file_path)
-
-def create_download_link(file_path):
-    try:
-        # Open the file and read its content
-        with open(file_path, 'rb') as f:
-            data = f.read()
-        
-        # Check if data is empty or None
-        if not data:
-            st.error("The file is empty or could not be read properly.")
-            return
-        
-        # Encode the data to base64
-        b64 = base64.b64encode(data).decode()  # Convert to base64
-        href = f'<a href="data:file/csv;base64,{b64}" download="{file_path}">Download {file_path}</a>'
-        st.markdown(href, unsafe_allow_html=True)
-        
-    except Exception as e:
-        st.error(f"Error creating download link: {e}")
-
-
-# Streamlit app
+# Streamlit App Main Function
 def main():
-    # Load entity data
+    st.image("minerva_logo.jpg", width=800)
+    
     try:
-        df = pd.read_csv("Entity_data.csv")
-        df.columns = df.columns.str.strip()  # Strip whitespace from column names
+        df = pd.read_csv("Entity_data.csv").applymap(lambda x: x.strip() if isinstance(x, str) else x)
     except Exception as e:
         st.error(f"Error loading CSV file: {e}")
         return
-
+    
     st.subheader("Please Register Yourself!")
     name_input = st.text_input("Enter Your Name:")
     apmid_input = st.text_input("Enter Your APMID:")
-
+    
     if st.button("Save"):
         if name_input and apmid_input:
             if is_user_registered(df, name_input, apmid_input):
@@ -119,18 +71,18 @@ def main():
                 st.success(f"Name '{name_input}' and APMID '{apmid_input}' saved!")
         else:
             st.error("Please fill both Name and APMID fields.")
-
-    st.subheader("Verify Your Name with Sanctioned Entities")
+    
+    st.subheader("Let's verify if you are not part of sanctioned entities")
     user_name = st.text_input("Your Name for Matching:")
-
+    
     if st.button("Match"):
         if user_name:
             result_df = match_name_address(df, user_name)
             if not result_df.empty:
-                st.write("You matched with a sanctioned entity (score > 75%):")
-                st.dataframe(result_df)
+                st.write("Ooo... You matched with one of the sanctioned entities. Further investigation required (score > 75%):")
+                st.dataframe(result_df.sort_values(by=['name_similarity'], ascending=False).reset_index(drop=True))
             else:
-                st.write("You're not part of any sanctioned list.")
+                st.write("Congratulations! You are not part of any sanctioned list.")
         else:
             st.error("Please provide a name to match.")
 
