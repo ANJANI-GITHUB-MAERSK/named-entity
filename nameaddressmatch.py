@@ -11,7 +11,7 @@ def preprocess_text(text: str) -> str:
     return re.sub(r'[^a-zA-Z0-9\s]', '', text.lower()).strip()
 
 # Function to calculate Jaro-Winkler similarity
-def jaro_winkler_similarity(s1: str, s2: str) -> float:
+def jaro_winkler_similarity_match(s1: str, s2: str) -> float:
     try:
         s1, s2 = preprocess_text(s1), preprocess_text(s2)
         return jellyfish.jaro_winkler_similarity(s1, s2)
@@ -25,7 +25,7 @@ def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
         st.error("DataFrame must contain 'name' column")
         return pd.DataFrame()
 
-    df['name_similarity'] = df['name'].apply(lambda name: jaro_winkler_similarity(name, user_name))
+    df['name_similarity'] = df['name'].apply(lambda name: jaro_winkler_similarity_match(name, user_name))
     return df[df['name_similarity'] > 0.75][['name', 'name_similarity']]
 
 # Function to check if the user is already registered
