@@ -49,6 +49,7 @@ def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
 
         # Assign results back to the DataFrame
         df['name_similarity'] = [similarity for _, similarity in results]
+        st.write("df['name_similarity']",df['name_similarity'] )
 
         # Filter records with a similarity score > 85%
         filtered_df = df[df['name_similarity'] > 0.85]
