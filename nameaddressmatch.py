@@ -188,7 +188,9 @@ def main():
     st.subheader("Let's verify if you are not part of sanctioned entities")
 
     # Use the saved name to populate the "Enter Your Name" field
-    user_name = st.text_input("Your Name for Matching:", value=st.session_state.saved_name)
+    #user_name = st.text_input("Your Name for Matching:", value=st.session_state.saved_name)
+    user_name = st.text_input("Your Name for Matching:")
+    st.write('user_name :',user_name)
 
     if st.button("Match"):
         if user_name:
