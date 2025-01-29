@@ -35,9 +35,9 @@ def jaro_winkler_similarity(s1: str, s2: str) -> float:
 
 def jaro_winkler_similarity(str1, str2):
     """Computes the Jaro-Winkler similarity between two strings."""
-    st.write('str1 :',str1)
-    st.write('str2 :',str2)
-    st.write("jellyfish.jaro_winkler:",jellyfish.jaro_winkler(str1, str2))
+    #st.write('str1 :',str1)
+    #st.write('str2 :',str2)
+    #st.write("jellyfish.jaro_winkler:",jellyfish.jaro_winkler(str1, str2))
     return jellyfish.jaro_winkler(str1, str2)
 
 def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
@@ -53,9 +53,9 @@ def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
         # Iterate through the 'name' column and calculate similarity for each row
         for name in df['name']:
             score = jaro_winkler_similarity(name, user_name)
-            st.write('name      :',name)
-            st.write('user_name :',user_name)
-            st.write('score     :',score)
+            #st.write('name      :',name)
+            #st.write('user_name :',user_name)
+            #st.write('score     :',score)
             similarity_scores.append(score)
 
         # Add the similarity scores to the DataFrame as a new column
@@ -233,14 +233,14 @@ def main():
     st.subheader("Let's verify if you are not part of sanctioned entities")
 
     # Use the saved name to populate the "Enter Your Name" field
-    #user_name = st.text_input("Your Name for Matching:", value=st.session_state.saved_name)
-    user_name = st.text_input("Your Name for Matching:")
+    user_name = st.text_input("Your Name for Matching:", value=st.session_state.saved_name)
+    #user_name = st.text_input("Your Name for Matching:")
     st.write('user_name :',user_name)
 
     if st.button("Match"):
         if user_name:
             result_df = match_name_address(df, user_name)
-            st.write('df :',df)
+            #st.write('df :',df)
             if not result_df.empty:
                 st.write("Ooo... You matched with one of the sanctioned entities. Further investigation required (score > 85%):")
                 st.dataframe(result_df[['name', 'name_similarity']].sort_values(by=['name_similarity'], ascending=False).reset_index(drop=True))
