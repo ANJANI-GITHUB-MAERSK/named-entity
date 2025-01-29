@@ -193,6 +193,7 @@ def main():
     if st.button("Match"):
         if user_name:
             result_df = match_name_address(df, user_name)
+            st.write('result_df :',result_df)
             if not result_df.empty:
                 st.write("Ooo... You matched with one of the sanctioned entities. Further investigation required (score > 85%):")
                 st.dataframe(result_df[['name', 'name_similarity']].sort_values(by=['name_similarity'], ascending=False).reset_index(drop=True))
