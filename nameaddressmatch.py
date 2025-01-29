@@ -9,6 +9,7 @@ import base64
 from pyjarowinkler import distance  # Ensure you have installed pyjarowinkler
 from io import StringIO  # Import StringIO for in-memory file handling
 import os
+import jellyfish
 
 # GitHub details
 # GITHUB_TOKEN = '--'  # Replace with your personal access token
@@ -31,34 +32,60 @@ def jaro_winkler_similarity(s1: str, s2: str) -> float:
         st.error(f"Error calculating similarity: {e}")
         return 0.0
 
-# Function to match name using multithreading
-def match_single_name(name: str, user_name: str) -> tuple:
-    similarity = jaro_winkler_similarity(name, user_name)
-    return name, similarity
 
-# Function to match name with the dataframe
+def jaro_winkler_similarity(str1, str2):
+    """Computes the Jaro-Winkler similarity between two strings."""
+    return jellyfish.jaro_winkler(str1, str2)
+
 def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
     try:
+        # Check if 'name' column exists in the DataFrame
         if 'name' not in df.columns:
-            st.error("DataFrame must contain 'name' column")
+            print("DataFrame must contain 'name' column")
             return pd.DataFrame()
 
-        # Multithreading for faster similarity calculation
-        with ThreadPoolExecutor() as executor:
-            results = list(executor.map(lambda name: match_single_name(name, user_name), df['name']))
+        # Calculate Jaro-Winkler similarity for each name in the 'name' column
+        df['name_similarity'] = df['name'].apply(lambda x: jaro_winkler_similarity(x, user_name))
 
-        # Assign results back to the DataFrame
-        df['name_similarity'] = [similarity for _, similarity in results]
-        st.write("df['name_similarity']",df['name_similarity'] )
+        # Filter records with a similarity score greater than 75%
+        filtered_df = df[df['name_similarity'] > 0.75]
 
-        # Filter records with a similarity score > 85%
-        filtered_df = df[df['name_similarity'] > 0.85]
-
+        # Return relevant columns
         return filtered_df[['name', 'name_similarity']]
 
     except Exception as e:
-        st.error(f"Error in matching: {e}")
+        print(f"Error in matching: {e}")
         return pd.DataFrame()
+
+# # Function to match name using multithreading
+# def match_single_name(name: str, user_name: str) -> tuple:
+#     similarity = jaro_winkler_similarity(name, user_name)
+#     return name, similarity
+    
+
+# # Function to match name with the dataframe
+# def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
+#     try:
+#         if 'name' not in df.columns:
+#             st.error("DataFrame must contain 'name' column")
+#             return pd.DataFrame()
+
+#         # Multithreading for faster similarity calculation
+#         with ThreadPoolExecutor() as executor:
+#             results = list(executor.map(lambda name: match_single_name(name, user_name), df['name']))
+
+#         # Assign results back to the DataFrame
+#         df['name_similarity'] = [similarity for _, similarity in results]
+#         st.write("df['name_similarity']",df['name_similarity'] )
+
+#         # Filter records with a similarity score > 85%
+#         filtered_df = df[df['name_similarity'] > 0.85]
+
+#         return filtered_df[['name', 'name_similarity']]
+
+#     except Exception as e:
+#         st.error(f"Error in matching: {e}")
+#         return pd.DataFrame()
 
 # # Function to upload CSV to GitHub
 # def upload_file_to_github(content, commit_message):
