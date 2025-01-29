@@ -196,6 +196,8 @@ def main():
     if st.button("Match"):
         if user_name:
             result_df = match_name_address(df, user_name)
+            st.write('df :',df)
+            st.write('user_name :',user_name)
             st.write('result_df :',result_df)
             if not result_df.empty:
                 st.write("Ooo... You matched with one of the sanctioned entities. Further investigation required (score > 85%):")
