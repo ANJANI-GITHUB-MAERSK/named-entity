@@ -46,8 +46,8 @@ def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
 
         # Calculate Jaro-Winkler similarity for each name in the 'name' column
         df['name_similarity'] = df['name'].apply(lambda x: jaro_winkler_similarity(x, user_name))
-
-        st.write('df['name_similarity'] :'+df['name_similarity'])
+        st.write('printing name_similarity')
+        st.write(df['name_similarity'])
 
         # Filter records with a similarity score greater than 75%
         filtered_df = df[df['name_similarity'] > 0.75]
