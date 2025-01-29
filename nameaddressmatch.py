@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from pyjarowinkler import distance  # Using pyjarowinkler for Jaro-Winkler similarity
 import os
+import base64
+
 
 # Function to preprocess text by making it lowercase and removing special characters
 def preprocess_text(text: str) -> str:
