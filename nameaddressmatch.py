@@ -37,7 +37,7 @@ def jaro_winkler_similarity(str1, str2):
     """Computes the Jaro-Winkler similarity between two strings."""
     st.write('str1 :',str1)
     st.write('str2 :',str2)
-    st.write('jellyfish.jaro_winkler(str1, str2):',jellyfish.jaro_winkler(str1, str2))
+    st.write("jellyfish.jaro_winkler:",jellyfish.jaro_winkler(str1, str2))
     return jellyfish.jaro_winkler(str1, str2)
 
 def match_name_address(df: pd.DataFrame, user_name: str) -> pd.DataFrame:
