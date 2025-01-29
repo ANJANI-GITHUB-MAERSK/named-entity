@@ -1,8 +1,9 @@
-import streamlit as st
+import re  # Ensure 're' is imported for regular expression operations
+import base64  # Ensure 'base64' is imported for encoding
 import pandas as pd
-from pyjarowinkler import distance  # Using pyjarowinkler for Jaro-Winkler similarity
-import os
-import base64
+import streamlit as st
+from pyjarowinkler import distance  # or jellyfish if you're using that library
+
 
 
 # Function to preprocess text by making it lowercase and removing special characters
